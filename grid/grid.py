@@ -123,6 +123,7 @@ class Grid:
         parameters = {entry[0]: entry[1].get() for entry in entries}
         action(selected_cells, rendered_cells, parameters)
         self._clear_selected_cells()
+        print(selected_cells)
 
     def _clear_all(self):
         self.raster.clear_all()
