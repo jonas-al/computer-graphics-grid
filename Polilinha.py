@@ -5,11 +5,9 @@ grid = Grid(extent=10, size=500)
 
 def Polilinha(selected_cells, rendered_cells, parameters):
     if len(selected_cells) < 3:
-            return
-    
-    for i in range(0, len(selected_cells) - 2):
+        return
 
-        
+    for i in range(len(selected_cells) - 1):
         x1, y1 = selected_cells[i]
         x2, y2 = selected_cells[i + 1]
 
@@ -25,24 +23,53 @@ def Polilinha(selected_cells, rendered_cells, parameters):
             sy = 1
         else:
             sy = -1
-        
+
         erro = dx - dy
 
-        while x1 != x2 or y1 != y2:
+        while True:
             rendered_cells.append((x1, y1))
-            erro2 = 2 * erro
 
-            if erro2 > -dy:
+            if x1 == x2 and y1 == y2:
+                break
+
+            e2 = 2 * erro
+            if e2 > -dy:
                 erro -= dy
                 x1 += sx
-            
-            if erro2 < dx:
+
+            if e2 < dx:
                 erro += dx
                 y1 += sy
 
-     # Renderize as células na grade
+    rendered_cells.append(selected_cells[-1])
+
+    # Renderize a última linha
+    x_last, y_last = selected_cells[-1]
+    x_prev, y_prev = selected_cells[-2]
+    dx = abs(x_last - x_prev)
+    dy = abs(y_last - y_prev)
+    sx = 1 if x_prev < x_last else -1
+    sy = 1 if y_prev < y_last else -1
+    erro = dx - dy
+
+    while True:
+        rendered_cells.append((x_prev, y_prev))
+
+        if x_prev == x_last and y_prev == y_last:
+            break
+
+        e2 = 2 * erro
+        if e2 > -dy:
+            erro -= dy
+            x_prev += sx
+
+        if e2 < dx:
+            erro += dx
+            y_prev += sy
+
     for cell in rendered_cells:
         grid.render_cell(cell)
+    print(rendered_cells)
 
 
 grid.add_algorithm(name="Polilinha", parameters=None, algorithm=Polilinha)

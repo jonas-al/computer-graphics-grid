@@ -1,50 +1,110 @@
 from grid import Grid
 
-# Initialize grid
+# Create a grid of extent 5 and size 600
 grid = Grid(extent=10, size=500)
 
-def preencher_linha_horizontal(x1, x2, y, rendered_cells):
-    for x in range(x1, x2):
-        rendered_cells.append((x, y))
 
 
-def PreenchePoligno(selected_cells, rendered_cells, parameters):
-    max_y = max(cell[1] for cell in selected_cells)
+def fill_polygon(selected_cells, rendered_cells, parameters):
+    min_x = min(cell[0] for cell in selected_cells)
+    max_x = max(cell[0] for cell in selected_cells)
     min_y = min(cell[1] for cell in selected_cells)
+    max_y = max(cell[1] for cell in selected_cells)
 
-    pontosIntersecao = []
+    # Inclui todas as coordenadas dos vértices na lista de células selecionadas
+    for vertex in selected_cells:
+        rendered_cells.append(vertex)
 
-    for i in range(0, len(selected_cells) - 1):
-        x1, y1 = selected_cells[i]
-        if selected_cells[0][1]:
-            x2, y2 = selected_cells[0]
-        else:
-            x2, y2 = selected_cells[i + 1]
+    # Itera por cada linha vertical dentro do polígono
+    for y in range(min_y, max_y + 1):
+        intersections = []
 
-        if y1 != y2:
-            pontosIntersecao.append((min(x1, x2), (y1, y2)))
+        # Verifica a interseção de cada aresta do polígono com a linha atual
+        for i in range(len(selected_cells)):
+            current_cell = selected_cells[i]
+            next_cell = selected_cells[(i + 1) % len(selected_cells)]
 
-    for y in range(min_y, max_y):
-        LinhasIntersecao = []
+            if (current_cell[1] <= y < next_cell[1]) or (next_cell[1] <= y < current_cell[1]):
+                # Calcula a interseção entre a aresta e a linha
+                if current_cell[1] != next_cell[1]:
+                    x = current_cell[0] + (next_cell[0] - current_cell[0]) * (y - current_cell[1]) / (next_cell[1] - current_cell[1])
+                else:
+                    x = current_cell[0]
 
-        for (x1, (y1, y2)) in pontosIntersecao:
-            if y1 <= y < y2 or y2 <= y < y1:
-                x_intersecao = x1 + (y - y1) * (x2 - x1) / (y2 - y1)
-                LinhasIntersecao.append(x_intersecao)
+                intersections.append(x)
 
-        LinhasIntersecao.sort()
+        # Ordena as interseções
+        intersections.sort()
 
-        for i in range(0, len(LinhasIntersecao) - 1, 2):
-            x_inicio = LinhasIntersecao[i]
-            x_fim = LinhasIntersecao[i + 1]
-            preencher_linha_horizontal(int(x_inicio), int(x_fim), y, rendered_cells)
+        # Preenche as células entre as interseções
+        for i in range(0, len(intersections), 2):
+            start_x = max(min_x, int(intersections[i]))
+            end_x = min(max_x, int(intersections[i + 1]))
 
-        
+            for x in range(start_x, end_x + 1):
+                cell = (x, y)
+                rendered_cells.append(cell)
 
-    # Renderize as células na grade
+    # # Remove todas as coordenadas adicionadas anteriormente
+    # for _ in range(len(selected_cells)):
+    #     rendered_cells.pop()
+
     for cell in rendered_cells:
         grid.render_cell(cell)
 
+    return
 
-grid.add_algorithm(name="Preenchimento", parameters=None, algorithm=PreenchePoligno)
+def fill_polygon_recursive(selected_cells, rendered_cells, parameters):
+    min_x = min(cell[0] for cell in selected_cells)
+    max_x = max(cell[0] for cell in selected_cells)
+    min_y = min(cell[1] for cell in selected_cells)
+    max_y = max(cell[1] for cell in selected_cells)
+
+    # Inclui todas as coordenadas dos vértices na lista de células selecionadas
+    for vertex in selected_cells:
+        rendered_cells.append(vertex)
+
+    # Define a função recursiva para preencher as células
+    def fill_recursive(y):
+        intersections = []
+
+        # Verifica a interseção de cada aresta do polígono com a linha atual
+        for i in range(len(selected_cells)):
+            current_cell = selected_cells[i]
+            next_cell = selected_cells[(i + 1) % len(selected_cells)]
+
+            if (current_cell[1] <= y < next_cell[1]) or (next_cell[1] <= y < current_cell[1]):
+                # Calcula a interseção entre a aresta e a linha
+                if current_cell[1] != next_cell[1]:
+                    x = current_cell[0] + (next_cell[0] - current_cell[0]) * (y - current_cell[1]) / (next_cell[1] - current_cell[1])
+                else:
+                    x = current_cell[0]
+
+                intersections.append(x)
+
+        # Ordena as interseções
+        intersections.sort()
+
+        # Preenche as células entre as interseções
+        for i in range(0, len(intersections), 2):
+            start_x = max(min_x, int(intersections[i]))
+            end_x = min(max_x, int(intersections[i + 1]))
+
+            for x in range(start_x, end_x + 1):
+                cell = (x, y)
+                rendered_cells.append(cell)
+
+        if y < max_y:
+            fill_recursive(y + 1)
+
+    # Chama a função recursiva para preencher as células
+    fill_recursive(min_y)
+    
+    for cell in rendered_cells:
+        grid.render_cell(cell)
+
+    return
+
+grid.add_algorithm("Algoritmo recursivo", parameters=None, algorithm=fill_polygon_recursive)
+grid.add_algorithm('Fill Polygon', parameters=None, algorithm=fill_polygon)
 grid.show()

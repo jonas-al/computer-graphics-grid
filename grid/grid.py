@@ -73,11 +73,11 @@ class Grid:
         y = (self.grid_size[1]) - raw_y
 
         if 0 <= x <= self.grid_size[0] and 0 <= y <= self.grid_size[1]:
-            print(x, y)
             cell_x = int(x // self.cell_size[0]) - self.raster.extent
             cell_y = int(y  // self.cell_size[1]) - self.raster.extent
-            self._select_cell((cell_x, cell_y))
-            self._redraw()
+            if self.is_valid_cell((cell_x, cell_y)):
+                self._select_cell((cell_x, cell_y))
+                self._redraw()
 
 
     def _redraw(self):
@@ -132,3 +132,10 @@ class Grid:
     def _clear_selected_cells(self):
         self.raster.clear_selected_cells()
         self._redraw()
+
+
+
+    def is_valid_cell(self, cell):
+        x, y = cell
+        extent =  self.raster.extent
+        return -extent <= x <= extent and -extent <= y <= extent
