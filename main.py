@@ -167,7 +167,6 @@ def Polilinha_algorithm(selected_cells, rendered_cells, parameters):
 
     for cell in rendered_cells:
         grid.render_cell(cell)
-    print(rendered_cells)
 
 
 def Bezier(selected_cells, rendered_cells, parameters):
@@ -283,7 +282,6 @@ def fill_polygon(selected_cells, rendered_cells, parameters):
     # for _ in range(len(selected_cells)):
     #     rendered_cells.pop()
 
-    print(rendered_cells)
     for cell in rendered_cells:
         grid.render_cell(cell)
 

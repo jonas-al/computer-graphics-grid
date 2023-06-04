@@ -12,6 +12,7 @@ class Grid:
         dimension = 2 * extent + 1
         self.cell_size = self.grid_size[0] / dimension, self.grid_size[1] / dimension
         self.root = Tk()
+        self.clip_window = None
 
         self.main_frame = Frame(self.root)
         self.main_frame.pack(anchor='center', expand=True, fill='both')
@@ -50,9 +51,20 @@ class Grid:
             run_button = Button(frame, text='Run', command=lambda: self._on_run_click(algorithm, entries))
             run_button.pack(side='left')
         return frame
+    
+    def fill_cell(self, cell):
+        if self.clip_window == None:
+            self.raster.fill_cell(cell)
+        else:
+            if self._is_inside_clip_window(cell):
+                self.raster.fill_cell(cell)
 
     def render_cell(self, cell):
-        self.raster.render_cell(cell)
+        if self.clip_window == None:
+                self.raster.render_cell(cell)
+        else:
+            if self._is_inside_clip_window(cell):
+                self.raster.render_cell(cell)
 
 
     def clear_cell(self, cell):
@@ -116,6 +128,23 @@ class Grid:
                 self.canvas.create_line(zero_x, Grid.MARGIN_SIZE, zero_x, self.window_size[1] - Grid.MARGIN_SIZE, fill='#222222', width=3)
                 self.canvas.create_line(Grid.MARGIN_SIZE, zero_y, self.window_size[0] - Grid.MARGIN_SIZE, zero_y, fill='#222222', width=3)
 
+                if self.clip_window:
+                    xmin, ymin = self.clip_window[0]
+                    xmax, ymax = self.clip_window[2]
+                    x1 = zero_x + (xmin - 0.5) * self.cell_size[0]
+                    y1 = zero_y - (ymin - 0.5) * self.cell_size[1]
+                    x2 = zero_x + (xmax + 0.5) * self.cell_size[0]
+                    y2 = zero_y - (ymax + 0.5) * self.cell_size[1]
+                    self.canvas.create_rectangle(x1, y1, x2, y2, outline='black', width=2)
+
+    def _is_inside_clip_window(self, cell):
+        if self.clip_window is None:
+            return True
+
+        x, y = cell
+        xmin, ymin = self.clip_window[0]
+        xmax, ymax = self.clip_window[2]
+        return xmin <= x <= xmax and ymin <= y <= ymax
 
     def _on_run_click(self, action, entries):
         selected_cells = self.raster.get_selected_cells()
@@ -123,10 +152,10 @@ class Grid:
         parameters = {entry[0]: entry[1].get() for entry in entries}
         action(selected_cells, rendered_cells, parameters)
         self._clear_selected_cells()
-        print(selected_cells)
 
     def _clear_all(self):
         self.raster.clear_all()
+        self.clip_window = None
         self._redraw()
 
     def _clear_selected_cells(self):
